@@ -45,7 +45,7 @@ Create a directory directly underneath the directory you created in the previous
 
 ### 3. Get the Latest CommunityView Source Code From GitHub
 
-Go to the CommunityView code repository on GitHub, [https://github.com/NeighborhoodGuard/communityview](https://github.com/NeighborhoodGuard/communityview), and download the code as a ZIP file by clicking the `Download ZIP` button in the lower right of the page.  The three Python source files required are in the directory `communityview-master/CommunityView/src` within the ZIP file, `baseclasses.py`, `localsettings.py` and `communityview.py`.  Extract these into a convenient directory on your local machine.
+Go to the CommunityView code repository on GitHub, [https://github.com/NeighborhoodGuard/communityview](https://github.com/NeighborhoodGuard/communityview), and download the code as a ZIP file by clicking the `Download ZIP` button in the lower right of the page.  The three Python source files required are in the directory `communityview-master/CommunityView/src` within the ZIP file, `baseclasses.py`, `localsettings.py`, `communityview.py`, and communityview_upload_image.py.  Extract these into a convenient directory on your local machine.
 
 In addition, you will need a script that is used to restart the CommunityView software when the server it's running on is rebooted, or in case the software itself stops running.  The restart script is in the directory `communityview-master/CommunityView/scripts` and is called `check_video_restart.bash`.  Extract it into the same directory where you extracted the Python files.
 
@@ -115,7 +115,14 @@ Now that the required changes have been made, you can copy the source code to th
 
 ### 6. Copy the Source Code to the Web Server
 
-Use FTP to copy the four source files, including your newly modified versions of `localsettings.py` and `check_video_restart.bash`, to your `communityview` directory on the Web server.  You can use any FTP client you like.
+Use FTP to copy the five source files, including your newly modified versions of `localsettings.py` and `check_video_restart.bash`, to your `communityview` directory on the Web server.  You can use [any FTP client you like](https://en.wikipedia.org/wiki/Comparison_of_FTP_client_software "For windows we use filezilla").
+
+Use ssh to connect as shell to your dreamhost server change directory to you "communityview" directory e.g. cd communityview.myneighborhood.org/communityview 
+then make the file communityview_upload_image.py executeable with this command
+
+**chmod +x communityview_upload_image.py**
+
+you are done with ssh and can logout 
 
 ### 7. Set Up the Server to Run `check_video_restart.bash` Periodically
 
