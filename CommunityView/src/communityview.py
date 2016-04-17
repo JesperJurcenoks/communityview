@@ -30,6 +30,7 @@ version_string = "0.9.4"
 
 
 import os
+import errno
 import Image
 import ImageChops
 import ImageOps
@@ -64,9 +65,9 @@ footer = "Software Copyright (c) 2012-2014  Neighborhood Guard, Inc. All rights 
 def mkdir(dirname):
     try:
         os.mkdir(dirname)
-    except:
-        pass
-
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
 def rmdir(dirname):
     try:
