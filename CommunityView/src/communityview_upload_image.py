@@ -18,6 +18,7 @@ import os, sys
 import shutil
 import re
 import localsettings
+import communityview
 
 HTML_TEMPLATE = """
 <html><head><title>File Upload</title>
@@ -81,7 +82,12 @@ def save_uploaded_file ():
                             camerashortname = matchobject.group(0)
                 
                             if form.has_key("status") and form["status"].value == "true" :
-                                outpath = os.path.join(localsettings.root, "status", camerashortname, fileitem.filename)
+                                # deliberately breaking this into two parts each using a single mkdir instead of using the recursive mkdirs. This is a security measure, preventing uncontrolled directory creation it something passes the filter
+                                statusdir=os.path.join(localsettings.root, "status")
+                                communityview.mkdir(statusdir)
+                                cameradir=os.path.join(statusdir, camerashortname) 
+                                communityview.mkdir(cameradir)
+                                outpath = os.path.join(cameradir, fileitem.filename)
                                 with open(outpath, 'wb') as fout:
                                     try:
                                         shutil.copyfileobj(fileitem.file, fout, 100000)
@@ -96,7 +102,12 @@ def save_uploaded_file ():
                                         error = "Invalid date"
                                     else:                           
                                         image_date = matchobject.group(0)
-                                        outpath = os.path.join(localsettings.root,image_date, camerashortname, fileitem.filename)
+                                        # deliberately breaking this into two parts each using a single mkdir instead of using the recursive mkdirs. This is a security measure, preventing uncontrolled directory creation it something passes the filter
+                                        datedir = os.path.join(localsettings.root, image_date) 
+                                        communityview.mkdir(datedir)
+                                        cameradir = os.path.join(datedir, camerashortname) 
+                                        communityview.mkdir(cameradir)
+                                        outpath = os.path.join(cameradir, fileitem.filename)
                                         
                                         with open(outpath, 'wb') as fout:
                                             try:
