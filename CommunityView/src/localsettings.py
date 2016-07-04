@@ -31,7 +31,7 @@ import logging
 #  shortname must match the name of directory where you upload the images        #
 #  (case sensitive)                                                              #
 #                                                                                #
-#  longname is your descriptive name of the came ra and location                 #
+#  longname is your descriptive name of the camera and location                 #
 #                                                                                #
 #  croparea - Optional, cropping function for thumbnail and medium res           #
 #  hires is alway uncropped                                                      #
