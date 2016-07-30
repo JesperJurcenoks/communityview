@@ -1,0 +1,999 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CommunityViewServer by Jesper Jurcenoks",
+  "Resources": {
+    "CommunityViewVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CommunityViewVPC"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "0ff56ec9-06e8-4f44-acdc-0768366aa89c"
+        }
+      }
+    },
+    "SshHttpPing": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "CommunityViewVPC"
+        },
+        "GroupDescription": "Inbound HTTP, SSH, Ping",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Ref": "SSHLocation"
+            }
+          },
+          {
+            "IpProtocol": "icmp",
+            "FromPort": "-1",
+            "ToPort": "-1",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CW HTTP, SHH, Ping"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "daa2bce8-8446-46a9-bbed-343a7a2a56c7"
+        }
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CW-InternetGateway"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "561103ad-4b04-45ce-8a9e-0c6d7f43e116"
+        }
+      }
+    },
+    "EC2VPCG4ZEOL": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        },
+        "VpcId": {
+          "Ref": "CommunityViewVPC"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "a6241685-e6a5-48c7-805b-b1427bacc8cb"
+        }
+      }
+    },
+    "PublicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "CommunityViewVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CW-PublicRouteTable"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "ee405b21-273a-4181-a7f1-ddfca5ed3c4f"
+        }
+      }
+    },
+    "PublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        },
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "be2e0433-df7c-4243-903f-a0404b1ede8a"
+        }
+      },
+      "DependsOn": [
+        "EC2VPCG4ZEOL"
+      ]
+    },
+    "EC2SRTALHY": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        },
+        "SubnetId": {
+          "Ref": "CommunityViewPublicSubnet"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "e14678a4-58d1-416c-a581-7951aa12c233"
+        }
+      }
+    },
+    "CommunityViewPublicSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "CommunityViewVPC"
+        },
+        "CidrBlock": "10.0.0.0/24",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CW-PublicSubnet"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "a0eff3b0-93a2-40b4-9765-c9194f3d967b"
+        }
+      }
+    },
+    "EC2EIP51JFK": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "InstanceId": {
+          "Ref": "CommunityViewServer"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "6509a43e-74e5-4364-9bd1-87044f4c2f54"
+        }
+      },
+      "DependsOn": [
+        "EC2VPCG4ZEOL"
+      ]
+    },
+    "EC2VA3WYJ4": {
+      "Type": "AWS::EC2::VolumeAttachment",
+      "Properties": {
+        "Device": "/dev/sdb",
+        "InstanceId": {
+          "Ref": "CommunityViewServer"
+        },
+        "VolumeId": {
+          "Ref": "NGData"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "a6b2a664-2306-4e26-b3fb-af3269d07989"
+        }
+      }
+    },
+    "CommunityViewServer": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSRegionArch2AMI",
+            {
+              "Ref": "AWS::Region"
+            },
+            {
+              "Fn::FindInMap": [
+                "AWSInstanceType2Arch",
+                {
+                  "Ref": "InstanceType"
+                },
+                "Arch"
+              ]
+            }
+          ]
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "NetworkInterfaces": [
+          {
+            "GroupSet": [
+              {
+                "Ref": "SshHttpPing"
+              }
+            ],
+            "AssociatePublicIpAddress": "true",
+            "DeleteOnTermination": "true",
+            "Description": "Primary network interface",
+            "DeviceIndex": "0",
+            "SubnetId": {
+              "Ref": "CommunityViewPublicSubnet"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "CommunityViewServer"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/bin/bash -xe\n",
+                "echo 'Update the AWS bootstrap tools'\n",
+                "yum update -y aws-cfn-bootstrap\n",
+                "echo 'Update everythinfg else'\n",
+                "yum update -y\n",
+                "echo 'Install the files and packages from the metadata'\n",
+                "/opt/aws/bin/cfn-init -v ",
+                " --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource CommunityViewServer ",
+                " --configsets All ",
+                " --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n",
+                "echo 'Signal the status from cfn-init'\n",
+                "/opt/aws/bin/cfn-signal -e $? ",
+                " --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                " --resource CommunityViewServer ",
+                " --region ",
+                {
+                  "Ref": "AWS::Region"
+                },
+                "\n"
+              ]
+            ]
+          }
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "f44e6010-17a7-4fcd-b1cd-1839575fc61d"
+        },
+        "AWS::CloudFormation::Init": {
+          "configSets": {
+            "All": [
+              "install_cfn",
+              "format_mount_disk",
+              "InstallConfigureApache",
+              "PasswordProtectApache",
+              "InstallCommunityView"
+            ]
+          },
+          "install_cfn": {
+            "files": {
+              "/etc/cfn/cfn-hup.conf": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "[main]\n",
+                      "stack=",
+                      {
+                        "Ref": "AWS::StackId"
+                      },
+                      "\n",
+                      "region=",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "\n"
+                    ]
+                  ]
+                },
+                "mode": "000400",
+                "owner": "root",
+                "group": "root"
+              },
+              "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "[cfn-auto-reloader-hook]\n",
+                      "triggers=post.update\n",
+                      "path=Resources.CommunityViewServer.Metadata.AWS::CloudFormation::Init\n",
+                      "action=/opt/aws/bin/cfn-init ",
+                      " --stack ",
+                      {
+                        "Ref": "AWS::StackName"
+                      },
+                      " --resource CommunityViewServer",
+                      " --configsets All",
+                      " --region ",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "\n"
+                    ]
+                  ]
+                },
+                "mode": "000400",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "services": {
+              "sysvinit": {
+                "cfn-hup": {
+                  "enabled": "true",
+                  "ensureRunning": "true",
+                  "files": [
+                    "/etc/cfn/cfn-hup.conf",
+                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                  ]
+                }
+              }
+            },
+            "commands": {
+              "SetTimeZoneLosAngeles": {
+                "command": "sudo sed -i 's/ZONE=\"UTC\"/ZONE=\"America\\/Los_Angeles\"/g' /etc/sysconfig/clock",
+                "cwd": "/etc"
+              },
+              "SetLocalTime": {
+                "command": "sudo cp /usr/share/zoneinfo/America/Los_Angeles /etc/localtime",
+                "cwd": "/etc"
+              }
+            }
+          },
+          "format_mount_disk": {
+            "files": {
+              "/home/ec2-user/conditional_format_xvdb": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "#!/bin/bash\n",
+                      "\n",
+                      "sudo file -s /dev/xvdb\n",
+                      "if sudo file -s /dev/xvdb | grep -q ext4; then\n",
+                      "  echo 'drive already formatted'\n",
+                      "else\n",
+                      "  echo 'formatting the drive'\n",
+                      "  sudo mkfs -t ext4 /dev/xvdb\n",
+                      "  echo 'mounting the drive'\n",
+                      "  sudo mkdir /data\n",
+                      "  sudo mount /dev/xvdb /data\n",
+                      "  echo 'adding to fstab'\n",
+                      "  if !(sudo cat /etc/fstab | grep /dev/xvdb); then\n",
+                      "    sudo sh -c 'echo \"/dev/xvdb       /data     ext4    defaults,         0       2\" >> /etc/fstab'  $\n",
+                      "  fi\n",
+                      "fi\n"
+                    ]
+                  ]
+                },
+                "mode": "000744",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "commands": {
+              "conditional_format_xvdb": {
+                "command": "/home/ec2-user/conditional_format_xvdb",
+                "cwd": "/home/ec2-user/",
+                "ignoreErrors": "false"
+              }
+            }
+          },
+          "InstallConfigureApache": {
+            "packages": {
+              "yum": {
+                "httpd": []
+              }
+            },
+            "files": {
+              "/var/www/html/index.html": {
+                "content": {
+                  "Fn::Join": [
+                    "\n",
+                    [
+                      "<h1>Neighborhood Guard CommunityView is starting up (default dir)</h1>"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/data/www/index.html": {
+                "content": {
+                  "Fn::Join": [
+                    "\n",
+                    [
+                      "<h1>Neighborhood Guard CommunityView is starting up (data dir)</h1>"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/etc/httpd/conf/configure_apache": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "#!/bin/bash\n",
+                      "\n",
+                      "echo 'Updating DocumentRoot'\n",
+                      "sudo sed -i 's/DocumentRoot \"\\/var\\/www\\/html\"/DocumentRoot \"\\/data\\/www\"/g' httpd.conf\n",
+                      "sudo sed -i 's/<Directory \"\\/var\\/www\">/<Directory \"\\/data\\/www\">/g' httpd.conf\n",
+                      "echo 'Updating AllowOverride'\n",
+                      "sudo sed -i '0,/AllowOverride/! s/AllowOverride None/AllowOverride All/g' httpd.conf\n",
+                      "echo 'Updating Status dir'\n",
+                      "sudo sed -i 's/<Directory \"\\/var\\/www\\/html\">/<Directory \"\\/data\\/www\">/g' httpd.conf\n",
+                      "echo 'Updating CGI-bin directory'\n",
+                      "sudo sed -i 's/<Directory \"\\/var\\/www\\/cgi-bin\">/<Directory \"\\/data\\/www\\/communityview\">/g' httpd.conf\n",
+                      "sudo sed -i '0,/<Directory \"\\/data\\/www\\/communityview\">/! s/Options None/Options +ExecCGI\\n    AddHandler cgi-script .py/g' httpd.conf\n",
+                      "sudo chown -R root:apache /data/www\n",
+                      "sudo chmod 2775 /data/www\n",
+                      "find /data/www -type d -exec sudo chmod 2775 {} \\;\n",
+                      "find /data/www -type f -exec sudo chmod 0664 {} \\;\n"
+                    ]
+                  ]
+                },
+                "mode": "000744",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "commands": {
+              "update_apache_document_dir": {
+                "command": "/etc/httpd/conf/configure_apache",
+                "cwd": "/etc/httpd/conf"
+              }
+            },
+            "services": {
+              "sysvinit": {
+                "httpd": {
+                  "enabled": "true",
+                  "ensureRunning": "true",
+                  "packages": {
+                    "yum": "httpd24"
+                  }
+                }
+              }
+            }
+          },
+          "PasswordProtectApache": {
+            "files": {
+              "/data/www/communityview/htpasswd.py": {
+                "source": "https://gist.githubusercontent.com/eculver/1420227/raw/3800e16a937bfaff35f254172de94826fd8867e0/htpasswd.py",
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              },
+              "/data/www/.htaccess": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "AuthType Basic\n",
+                      "AuthUserFile /data/www/.htpasswd\n",
+                      "AuthName \"CommunityView Protected Area\"\n",
+                      "require valid-user\n"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "commands": {
+              "PasswordProtect": {
+                "command": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "sudo python htpasswd.py -c -b /data/www/.htpasswd '",
+                      {
+                        "Ref": "WebUsername"
+                      },
+                      "' '",
+                      {
+                        "Ref": "WebUserPassword"
+                      },
+                      "'"
+                    ]
+                  ]
+                },
+                "cwd": "/data/www/communityview"
+              }
+            }
+          },
+          "InstallCommunityView": {
+            "files": {
+              "/data/www/communityview/communityview.py": {
+                "source": "https://raw.githubusercontent.com/JesperJurcenoks/communityview/master/CommunityView/src/communityview.py",
+                "mode": "000644",
+                "owner": "root",
+                "group": "apache"
+              },
+              "/data/www/communityview/baseclasses.py": {
+                "source": "https://raw.githubusercontent.com/JesperJurcenoks/communityview/master/CommunityView/src/baseclasses.py",
+                "mode": "000644",
+                "owner": "root",
+                "group": "apache"
+              },
+              "/data/www/communityview/communityview_upload_image.py": {
+                "source": "https://raw.githubusercontent.com/JesperJurcenoks/communityview/master/CommunityView/src/communityview_upload_image.py",
+                "mode": "000754",
+                "owner": "root",
+                "group": "apache"
+              },
+              "/data/www/communityview/localsettings.py": {
+                "source": "https://raw.githubusercontent.com/JesperJurcenoks/communityview/master/CommunityView/src/localsettings.py",
+                "mode": "000644",
+                "owner": "root",
+                "group": "apache"
+              },
+              "/data/www/communityview/communityview_upload_image.log": {
+                "content": "First line created by cfn-init\n",
+                "mode": "000664",
+                "owner": "root",
+                "group": "apache"
+              },
+              "/data/www/communityview/check_video_restart.bash": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "#!/bin/bash\n",
+                      "\n",
+                      "if ps -A | grep -q python ; then\n",
+                      "  echo 'python already running'\n",
+                      "else\n",
+                      "  echo 'starting Python'\n",
+                      "  cd /data/www/communityview\n",
+                      "  nohup /usr/bin/python communityview.py &\n",
+                      "fi\n"
+                    ]
+                  ]
+                },
+                "mode": "000744",
+                "owner": "root",
+                "group": "root"
+              },
+              "/data/www/communityview/cronjob.txt": {
+                "content": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "*/10 * * * * \"/data/www/communityview/check_video_restart.bash\"\n",
+                      "25 02 * * * \"yum update -y\"\n"
+                    ]
+                  ]
+                },
+                "mode": "000644",
+                "owner": "root",
+                "group": "root"
+              }
+            },
+            "commands": {
+              "SetCronJob": {
+                "command": "crontab /data/www/communityview/cronjob.txt"
+              },
+              "SetCommunityViewRootDir": {
+                "command": "sudo sed -i 's/root = \"\\/home\\/example_user\\/upload_directory\\/\"/root = \"\\/data\\/www\"/g' localsettings.py",
+                "cwd": "/data/www/communityview"
+              },
+              "SetCommunityViewCameras": {
+                "command": "sudo sed -i 's/camera(\"camera_location_shortname\", \"camera_location_longname\")/camera(\"Burton\", \"Burton Drive\", (\"22%\", \"22\", \"74%\" ,\"100%\")),\\n    camera(\"Wilton\", \"Wilton Drive\")/g' localsettings.py",
+                "cwd": "/data/www/communityview"
+              }
+            }
+          }
+        }
+      },
+      "DependsOn": [
+        "PublicRoute"
+      ]
+    },
+    "NGData": {
+      "Type": "AWS::EC2::Volume",
+      "Properties": {
+        "Size": {
+          "Ref": "DiskSize"
+        },
+        "AvailabilityZone": {
+          "Fn::GetAtt": [
+            "CommunityViewServer",
+            "AvailabilityZone"
+          ]
+        },
+        "VolumeType": {
+          "Ref": "DiskType"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "NGData"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "fe3fdd49-fe47-4fca-9e91-2a4980a641b7"
+        }
+      },
+      "DeletionPolicy": "Delete"
+    }
+  },
+  "Parameters": {
+    "InstanceType": {
+      "Description": "WebServer EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.nano",
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "t2.large",
+        "m3.medium",
+        "m3.large",
+        "m4.large"
+      ],
+      "ConstraintDescription": "must be a valid EC2 instance type."
+    },
+    "KeyName": {
+      "Description": "Name of an EC2 KeyPair to enable SSH access to the instance.",
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+    },
+    "SSHLocation": {
+      "Description": "The IP address range that can be usedto access the web server using SSH.",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "0.0.0.0/0",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    },
+    "WebUsername": {
+      "Description": "The username that a crime group must enter to see the recorded images",
+      "Type": "String",
+      "MinLength": "6",
+      "MaxLength": "30",
+      "AllowedPattern": "([a-z_-]{6,30})",
+      "ConstraintDescription": "username must be lowercase a-z underscore (_) and dash (-) 6-30 characters"
+    },
+    "WebUserPassword": {
+      "Description": "The password that a crime group must enter to see the recorded images",
+      "Type": "String",
+      "MinLength": "8",
+      "MaxLength": "30",
+      "AllowedPattern": "([a-zA-Z!@#$%^&*_0-9-]{8,30})",
+      "ConstraintDescription": "password must be [a-zA-Z!@#$%^&*_-] 8-30 characters"
+    },
+    "DiskType": {
+      "Description": "Select Type of data disk storage",
+      "Type": "String",
+      "Default": "gp2",
+      "AllowedValues": [
+        "io1",
+        "gp2",
+        "st1",
+        "sc1"
+      ]
+    },
+    "DiskSize": {
+      "Type": "Number",
+      "Default": "22",
+      "MinValue": "1",
+      "MaxValue": "16000"
+    }
+  },
+  "Mappings": {
+    "AWSInstanceType2Arch": {
+      "t2.nano": {
+        "Arch": "HVM64"
+      },
+      "t2.micro": {
+        "Arch": "HVM64"
+      },
+      "t2.small": {
+        "Arch": "HVM64"
+      },
+      "t2.medium": {
+        "Arch": "HVM64"
+      },
+      "t2.large": {
+        "Arch": "HVM64"
+      },
+      "m3.medium": {
+        "Arch": "HVM64"
+      },
+      "m3.large": {
+        "Arch": "HVM64"
+      },
+      "m4.large": {
+        "Arch": "HVM64"
+      }
+    },
+    "AWSRegionArch2AMI": {
+      "us-west-2": {
+        "HVM64": "ami-7172b611"
+      }
+    }
+  },
+  "Outputs": {
+    "URL": {
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "http://",
+            {
+              "Fn::GetAtt": [
+                "CommunityViewServer",
+                "PublicIp"
+              ]
+            }
+          ]
+        ]
+      },
+      "Description": "Newly created CommunityView URL"
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "561103ad-4b04-45ce-8a9e-0c6d7f43e116": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 180,
+          "y": 340
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "0ff56ec9-06e8-4f44-acdc-0768366aa89c": {
+        "size": {
+          "width": 480,
+          "height": 250
+        },
+        "position": {
+          "x": 70,
+          "y": 80
+        },
+        "z": 1,
+        "embeds": [
+          "a0eff3b0-93a2-40b4-9765-c9194f3d967b",
+          "ee405b21-273a-4181-a7f1-ddfca5ed3c4f",
+          "daa2bce8-8446-46a9-bbed-343a7a2a56c7",
+          "fe3fdd49-fe47-4fca-9e91-2a4980a641b7",
+          "6509a43e-74e5-4364-9bd1-87044f4c2f54"
+        ]
+      },
+      "a0eff3b0-93a2-40b4-9765-c9194f3d967b": {
+        "size": {
+          "width": 110,
+          "height": 140
+        },
+        "position": {
+          "x": 330,
+          "y": 100
+        },
+        "z": 2,
+        "parent": "0ff56ec9-06e8-4f44-acdc-0768366aa89c",
+        "embeds": [
+          "f44e6010-17a7-4fcd-b1cd-1839575fc61d"
+        ]
+      },
+      "ee405b21-273a-4181-a7f1-ddfca5ed3c4f": {
+        "size": {
+          "width": 140,
+          "height": 150
+        },
+        "position": {
+          "x": 100,
+          "y": 140
+        },
+        "z": 2,
+        "parent": "0ff56ec9-06e8-4f44-acdc-0768366aa89c",
+        "embeds": [
+          "be2e0433-df7c-4243-903f-a0404b1ede8a"
+        ]
+      },
+      "e14678a4-58d1-416c-a581-7951aa12c233": {
+        "source": {
+          "id": "ee405b21-273a-4181-a7f1-ddfca5ed3c4f"
+        },
+        "target": {
+          "id": "a0eff3b0-93a2-40b4-9765-c9194f3d967b"
+        },
+        "z": 2
+      },
+      "a6241685-e6a5-48c7-805b-b1427bacc8cb": {
+        "source": {
+          "id": "561103ad-4b04-45ce-8a9e-0c6d7f43e116"
+        },
+        "target": {
+          "id": "0ff56ec9-06e8-4f44-acdc-0768366aa89c"
+        },
+        "z": 1
+      },
+      "be2e0433-df7c-4243-903f-a0404b1ede8a": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 130,
+          "y": 200
+        },
+        "z": 3,
+        "parent": "ee405b21-273a-4181-a7f1-ddfca5ed3c4f",
+        "embeds": [],
+        "references": [
+          "561103ad-4b04-45ce-8a9e-0c6d7f43e116"
+        ],
+        "dependson": [
+          "a6241685-e6a5-48c7-805b-b1427bacc8cb"
+        ]
+      },
+      "f44e6010-17a7-4fcd-b1cd-1839575fc61d": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 360,
+          "y": 160
+        },
+        "z": 3,
+        "parent": "a0eff3b0-93a2-40b4-9765-c9194f3d967b",
+        "embeds": [],
+        "dependson": [
+          "be2e0433-df7c-4243-903f-a0404b1ede8a"
+        ],
+        "isrelatedto": [
+          "daa2bce8-8446-46a9-bbed-343a7a2a56c7"
+        ]
+      },
+      "daa2bce8-8446-46a9-bbed-343a7a2a56c7": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 480,
+          "y": 180
+        },
+        "z": 2,
+        "parent": "0ff56ec9-06e8-4f44-acdc-0768366aa89c",
+        "embeds": []
+      },
+      "32b73162-d765-467a-a3bb-a2590888d765": {
+        "source": {
+          "id": "be2e0433-df7c-4243-903f-a0404b1ede8a"
+        },
+        "target": {
+          "id": "561103ad-4b04-45ce-8a9e-0c6d7f43e116"
+        },
+        "z": 4
+      },
+      "e10d9b76-1f34-4a69-b629-1d0d8a89d0e7": {
+        "source": {
+          "id": "303a65b8-f24b-4914-a747-7b68bb8d5783"
+        },
+        "target": {
+          "id": "a6241685-e6a5-48c7-805b-b1427bacc8cb"
+        },
+        "z": 5
+      },
+      "6509a43e-74e5-4364-9bd1-87044f4c2f54": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 480,
+          "y": 260
+        },
+        "z": 2,
+        "parent": "0ff56ec9-06e8-4f44-acdc-0768366aa89c",
+        "embeds": [],
+        "isconnectedto": [
+          "f44e6010-17a7-4fcd-b1cd-1839575fc61d"
+        ],
+        "dependson": [
+          "a6241685-e6a5-48c7-805b-b1427bacc8cb"
+        ]
+      },
+      "d517233f-94ea-4736-a08f-be4b22cc957b": {
+        "source": {
+          "id": "6509a43e-74e5-4364-9bd1-87044f4c2f54"
+        },
+        "target": {
+          "id": "a6241685-e6a5-48c7-805b-b1427bacc8cb"
+        },
+        "z": 4
+      },
+      "276fb942-4e70-47a5-b78a-68681d6ca6b2": {
+        "source": {
+          "id": "6509a43e-74e5-4364-9bd1-87044f4c2f54"
+        },
+        "target": {
+          "id": "f44e6010-17a7-4fcd-b1cd-1839575fc61d"
+        },
+        "z": 5
+      },
+      "fe3fdd49-fe47-4fca-9e91-2a4980a641b7": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 360,
+          "y": 260
+        },
+        "z": 2,
+        "parent": "0ff56ec9-06e8-4f44-acdc-0768366aa89c",
+        "embeds": [],
+        "isrelatedto": [
+          "f44e6010-17a7-4fcd-b1cd-1839575fc61d"
+        ]
+      },
+      "a6b2a664-2306-4e26-b3fb-af3269d07989": {
+        "source": {
+          "id": "f44e6010-17a7-4fcd-b1cd-1839575fc61d"
+        },
+        "target": {
+          "id": "fe3fdd49-fe47-4fca-9e91-2a4980a641b7"
+        },
+        "z": 3
+      }
+    }
+  }
+}
